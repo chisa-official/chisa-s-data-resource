@@ -18,6 +18,7 @@ services:
     plan: free                   # 免费额度：512MB RAM，每月 750 小时；正式使用建议升级到 starter($7/月)
     region: oregon               # 可选：oregon / frankfurt / singapore / ohio / virginia
     buildCommand: |
+      npm install tsconfig-paths
       npm run prisma:generate
       npm run build
       npx prisma db push --accept-data-loss
@@ -49,7 +50,7 @@ services:
       # 部署完 Netlify 后，把域名填到这里，多域名用英文逗号分隔
       # 例如：https://your-student-site.netlify.app,https://your-admin-site.netlify.app
       - key: CORS_ORIGIN
-        value: ""                 # 必填！先占位，等 Netlify 部署后回来填
+        value: "https://candid-liger-557ec2.netlify.app,https://harmonious-haupia-0103fe.netlify.app"
       # ===== WebSocket 公网地址 =====
       # 填 Render 后端的 Service URL（不带 /api），例如 https://student-mgmt-api.onrender.com
       - key: WS_PUBLIC_URL

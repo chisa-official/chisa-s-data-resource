@@ -22,7 +22,7 @@
 [build]
   base      = "student-web"
   publish   = "dist"
-  command   = "npm install && npm run build"
+  command   = "npm install && npx vite build"
 
 # SPA 路由回退（Git 部署时自动生效，Drop 方式依赖 public/_redirects）
 [[redirects]]
