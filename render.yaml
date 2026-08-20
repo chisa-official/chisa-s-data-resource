@@ -50,7 +50,7 @@ services:
       # 部署完 Netlify 后，把域名填到这里，多域名用英文逗号分隔
       # 例如：https://your-student-site.netlify.app,https://your-admin-site.netlify.app
       - key: CORS_ORIGIN
-        value: "https://candid-liger-557ec2.netlify.app,https://harmonious-haupia-0103fe.netlify.app"
+        value: "https://student-mgmt-admin.netlify.app,https://student-mgmt-web.netlify.app"
       # ===== WebSocket 公网地址 =====
       # 填 Render 后端的 Service URL（不带 /api），例如 https://student-mgmt-api.onrender.com
       - key: WS_PUBLIC_URL
