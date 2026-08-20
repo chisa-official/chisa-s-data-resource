@@ -1,0 +1,2 @@
+# SPA 路由回退（Netlify）：所有路径重定向到 index.html，避免刷新 404
+/*    /index.html   200

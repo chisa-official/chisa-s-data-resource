@@ -1,0 +1,47 @@
+# 依赖
+node_modules/
+.pnp
+.pnp.js
+
+# 构建产物
+dist/
+build/
+*.tsbuildinfo
+
+# 日志
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 环境变量（含敏感信息）
+.env
+.env.local
+.env.*.local
+
+# 上传与备份
+uploads/
+backups/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# 系统
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/migrations/dev.db*
+
+# 缓存
+.cache/
+.eslintcache
+.vite/
+
+# 测试覆盖
+coverage/

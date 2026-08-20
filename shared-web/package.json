@@ -1,0 +1,21 @@
+{
+  "name": "shared-web",
+  "version": "0.1.0",
+  "private": true,
+  "description": "学生端与后台端共享的类型、组件、composables 与工具",
+  "type": "module",
+  "dependencies": {
+    "@element-plus/icons-vue": "^2.3.1",
+    "axios": "^1.6.8",
+    "dayjs": "^1.11.10",
+    "element-plus": "^2.7.0",
+    "socket.io-client": "^4.7.5",
+    "vue": "^3.4.21"
+  },
+  "peerDependencies": {
+    "echarts": "^5.5.0"
+  },
+  "devDependencies": {
+    "echarts": "^5.5.0"
+  }
+}

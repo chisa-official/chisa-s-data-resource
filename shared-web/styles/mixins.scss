@@ -1,0 +1,75 @@
+// ============================================================
+// 通用 SCSS Mixins — 高校学生管理系统
+// ============================================================
+
+@use '@shared-web/styles/tokens.scss' as *;
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin multi-line-ellipsis($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+@mixin scrollbar($width: 8px, $track: $gray-3, $thumb: $gray-6, $thumb-hover: $gray-7) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track;
+    border-radius: calc($width / 2);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $thumb;
+    border-radius: calc($width / 2);
+
+    &:hover {
+      background: $thumb-hover;
+    }
+  }
+}
+
+@mixin card-surface {
+  background: $gray-1;
+  border-radius: $radius-xl;
+  box-shadow: $shadow-subtle;
+  border: 1px solid $border-light;
+}
+
+@mixin focus-ring {
+  outline: none;
+  box-shadow: $shadow-focus;
+}
+
+@mixin responsive-breakpoint($breakpoint) {
+  @if $breakpoint == 'sm' {
+    @media (max-width: 1280px) { @content; }
+  } @else if $breakpoint == 'md' {
+    @media (min-width: 1281px) and (max-width: 1440px) { @content; }
+  } @else if $breakpoint == 'lg' {
+    @media (min-width: 1441px) and (max-width: 1920px) { @content; }
+  } @else if $breakpoint == 'xl' {
+    @media (min-width: 1921px) { @content; }
+  }
+}

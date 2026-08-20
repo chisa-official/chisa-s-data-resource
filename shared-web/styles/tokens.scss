@@ -1,0 +1,209 @@
+// ============================================================
+// 设计 Token 体系 — 高校学生管理系统
+// 学生端与后台端共享，通过 CSS 变量 + SCSS 变量双轨暴露
+// ============================================================
+
+// ---------------------- 品牌色板 ----------------------
+$brand-primary: #2563eb;
+$brand-primary-light: #3b82f6;
+$brand-primary-lighter: #60a5fa;
+$brand-primary-dark: #1d4ed8;
+$brand-primary-darker: #1e40af;
+
+// ---------------------- 语义色板 ----------------------
+$semantic-success: #10b981;
+$semantic-success-light: #d1fae5;
+$semantic-warning: #f59e0b;
+$semantic-warning-light: #fef3c7;
+$semantic-danger: #ef4444;
+$semantic-danger-light: #fee2e2;
+$semantic-info: #64748b;
+$semantic-info-light: #e2e8f0;
+
+// ---------------------- 中性色阶 ----------------------
+$gray-1: #ffffff;
+$gray-2: #f8fafc;
+$gray-3: #f1f5f9;
+$gray-4: #e2e8f0;
+$gray-5: #cbd5e1;
+$gray-6: #94a3b8;
+$gray-7: #64748b;
+$gray-8: #475569;
+$gray-9: #334155;
+$gray-10: #1e293b;
+$gray-11: #0f172a;
+
+// ---------------------- 文字色 ----------------------
+$text-primary: $gray-10;
+$text-secondary: $gray-7;
+$text-tertiary: $gray-6;
+$text-disabled: $gray-5;
+$text-inverse: $gray-1;
+
+// ---------------------- 背景/边框 ----------------------
+$bg-body: $gray-2;
+$bg-surface: $gray-1;
+$bg-hover: $gray-3;
+$bg-active: $gray-4;
+$border-light: $gray-4;
+$border-default: $gray-5;
+$border-dark: $gray-6;
+
+// ---------------------- 字号阶梯 ----------------------
+$font-size-xs: 12px;
+$font-size-sm: 13px;
+$font-size-base: 14px;
+$font-size-md: 16px;
+$font-size-lg: 18px;
+$font-size-xl: 20px;
+$font-size-2xl: 24px;
+$font-size-3xl: 28px;
+$font-size-4xl: 32px;
+
+// ---------------------- 字重 ----------------------
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// ---------------------- 行高 ----------------------
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+
+// ---------------------- 间距阶梯 ----------------------
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+$space-7: 32px;
+$space-8: 40px;
+$space-9: 48px;
+
+// ---------------------- 圆角阶梯 ----------------------
+$radius-sm: 2px;
+$radius-md: 4px;
+$radius-lg: 6px;
+$radius-xl: 8px;
+$radius-2xl: 12px;
+$radius-full: 9999px;
+
+// ---------------------- 阴影阶梯 ----------------------
+$shadow-subtle: 0 1px 2px rgba(15, 23, 42, 0.04);
+$shadow-medium: 0 4px 12px rgba(15, 23, 42, 0.08);
+$shadow-large: 0 8px 24px rgba(15, 23, 42, 0.12);
+$shadow-focus: 0 0 0 3px rgba(37, 99, 235, 0.15);
+
+// ---------------------- 布局 ----------------------
+$layout-header-height: 60px;
+$layout-sidebar-width: 220px;
+$layout-sidebar-collapsed-width: 64px;
+$layout-tagsview-height: 36px;
+
+// ---------------------- Z-Index ----------------------
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+
+// ---------------------- CSS 自定义属性（运行时可用） ----------------------
+:root {
+  // 品牌色
+  --color-brand-primary: #{$brand-primary};
+  --color-brand-primary-light: #{$brand-primary-light};
+  --color-brand-primary-lighter: #{$brand-primary-lighter};
+  --color-brand-primary-dark: #{$brand-primary-dark};
+  --color-brand-primary-darker: #{$brand-primary-darker};
+
+  // 语义色
+  --color-success: #{$semantic-success};
+  --color-success-light: #{$semantic-success-light};
+  --color-warning: #{$semantic-warning};
+  --color-warning-light: #{$semantic-warning-light};
+  --color-danger: #{$semantic-danger};
+  --color-danger-light: #{$semantic-danger-light};
+  --color-info: #{$semantic-info};
+  --color-info-light: #{$semantic-info-light};
+
+  // 中性色阶
+  --color-gray-1: #{$gray-1};
+  --color-gray-2: #{$gray-2};
+  --color-gray-3: #{$gray-3};
+  --color-gray-4: #{$gray-4};
+  --color-gray-5: #{$gray-5};
+  --color-gray-6: #{$gray-6};
+  --color-gray-7: #{$gray-7};
+  --color-gray-8: #{$gray-8};
+  --color-gray-9: #{$gray-9};
+  --color-gray-10: #{$gray-10};
+  --color-gray-11: #{$gray-11};
+
+  // 文字色
+  --color-text-primary: #{$text-primary};
+  --color-text-secondary: #{$text-secondary};
+  --color-text-tertiary: #{$text-tertiary};
+  --color-text-disabled: #{$text-disabled};
+  --color-text-inverse: #{$text-inverse};
+
+  // 背景/边框
+  --color-bg-body: #{$bg-body};
+  --color-bg-surface: #{$bg-surface};
+  --color-bg-hover: #{$bg-hover};
+  --color-bg-active: #{$bg-active};
+  --color-border-light: #{$border-light};
+  --color-border-default: #{$border-default};
+  --color-border-dark: #{$border-dark};
+
+  // 字号
+  --font-size-xs: #{$font-size-xs};
+  --font-size-sm: #{$font-size-sm};
+  --font-size-base: #{$font-size-base};
+  --font-size-md: #{$font-size-md};
+  --font-size-lg: #{$font-size-lg};
+  --font-size-xl: #{$font-size-xl};
+  --font-size-2xl: #{$font-size-2xl};
+  --font-size-3xl: #{$font-size-3xl};
+  --font-size-4xl: #{$font-size-4xl};
+
+  // 字重
+  --font-weight-regular: #{$font-weight-regular};
+  --font-weight-medium: #{$font-weight-medium};
+  --font-weight-semibold: #{$font-weight-semibold};
+  --font-weight-bold: #{$font-weight-bold};
+
+  // 间距
+  --space-1: #{$space-1};
+  --space-2: #{$space-2};
+  --space-3: #{$space-3};
+  --space-4: #{$space-4};
+  --space-5: #{$space-5};
+  --space-6: #{$space-6};
+  --space-7: #{$space-7};
+  --space-8: #{$space-8};
+  --space-9: #{$space-9};
+
+  // 圆角
+  --radius-sm: #{$radius-sm};
+  --radius-md: #{$radius-md};
+  --radius-lg: #{$radius-lg};
+  --radius-xl: #{$radius-xl};
+  --radius-2xl: #{$radius-2xl};
+  --radius-full: #{$radius-full};
+
+  // 阴影
+  --shadow-subtle: #{$shadow-subtle};
+  --shadow-medium: #{$shadow-medium};
+  --shadow-large: #{$shadow-large};
+  --shadow-focus: #{$shadow-focus};
+
+  // 布局
+  --layout-header-height: #{$layout-header-height};
+  --layout-sidebar-width: #{$layout-sidebar-width};
+  --layout-sidebar-collapsed-width: #{$layout-sidebar-collapsed-width};
+  --layout-tagsview-height: #{$layout-tagsview-height};
+}

@@ -1,0 +1,50 @@
+# ============================================================
+# MySQL 8.0 容器配置
+# ============================================================
+# 说明：
+#   - 端口绑定 127.0.0.1:3306:3306，仅本机可访问，不对外暴露
+#     （后端通过 127.0.0.1 连接；如需远程访问改为 0.0.0.0:3306:3306）
+#   - 生产环境请修改 MYSQL_ROOT_PASSWORD
+#   - 日志限制防止磁盘膨胀
+#   - 数据卷持久化
+# ============================================================
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: student-mgmt-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: root123456
+      MYSQL_DATABASE: student_mgmt
+      TZ: Asia/Shanghai
+    command:
+      - --default-authentication-plugin=mysql_native_password
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --max_connections=200
+      - --innodb_buffer_pool_size=256M
+    ports:
+      - "127.0.0.1:3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot123456"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # 日志限制（防止日志文件膨胀）
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # 内存与 CPU 限制（按服务器配置调整）
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+volumes:
+  mysql_data:

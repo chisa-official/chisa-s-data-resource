@@ -1,0 +1,137 @@
+@use '@shared-web/styles/tokens.scss' as *;
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+    'Microsoft YaHei', Helvetica, Arial, sans-serif;
+  font-size: $font-size-base;
+  color: $text-primary;
+  background-color: $bg-body;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  color: $brand-primary;
+  text-decoration: none;
+
+  &:hover {
+    color: $brand-primary-dark;
+  }
+}
+
+// 自定义滚动条
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background: $gray-6;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: $gray-7;
+}
+::-webkit-scrollbar-track {
+  background: $gray-3;
+}
+
+// 焦点态可访问性
+:focus-visible {
+  outline: 2px solid $brand-primary-lighter;
+  outline-offset: 2px;
+}
+
+// 页面内容区统一内边距
+.page-container {
+  padding: $space-5;
+}
+
+// 通用卡片样式增强
+.el-card {
+  border-radius: $radius-xl !important;
+  border-color: $border-light !important;
+  box-shadow: $shadow-subtle !important;
+
+  &.is-hover-shadow:hover {
+    box-shadow: $shadow-medium !important;
+  }
+
+  .el-card__header {
+    padding: $space-4 $space-5;
+    border-bottom-color: $border-light;
+    font-weight: $font-weight-semibold;
+  }
+
+  .el-card__body {
+    padding: $space-5;
+  }
+}
+
+// 表格样式优化
+.el-table {
+  --el-table-header-bg-color: #{$gray-2};
+  --el-table-header-text-color: #{$text-secondary};
+  --el-table-row-hover-bg-color: #{$gray-3};
+  --el-table-border-color: #{$border-light};
+
+  .el-table__header th.el-table__cell {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    letter-spacing: 0.02em;
+  }
+
+  .el-table__cell {
+    padding: $space-3 0;
+  }
+}
+
+// 表单样式优化
+.el-form {
+  .el-form-item__label {
+    color: $text-secondary;
+    font-weight: $font-weight-medium;
+  }
+
+  .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label-wrap > .el-form-item__label::after,
+  .el-form-item.is-required:not(.is-no-asterisk) > .el-form-item__label::after {
+    color: $semantic-danger;
+  }
+}
+
+// 按钮圆角统一
+.el-button {
+  border-radius: $radius-lg;
+
+  &.is-round {
+    border-radius: $radius-full;
+  }
+}
+
+// 分页器右对齐
+.pagination-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: $space-5;
+}
+
+// 搜索栏样式
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $space-3;
+  align-items: center;
+  padding: $space-4;
+  margin-bottom: $space-4;
+  background: $bg-surface;
+  border-radius: $radius-xl;
+  border: 1px solid $border-light;
+}

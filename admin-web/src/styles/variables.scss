@@ -1,0 +1,17 @@
+// 全局 SCSS 变量 — 后台端
+// 优先引用共享 Token 与 Mixins，保留少量布局专用变量
+@forward '@shared-web/styles/tokens.scss';
+@forward '@shared-web/styles/mixins.scss';
+@use '@shared-web/styles/tokens.scss' as tokens;
+
+// 保留历史变量名兼容（旧代码可能引用）
+$primary-color: tokens.$brand-primary;
+$success-color: tokens.$semantic-success;
+$warning-color: tokens.$semantic-warning;
+$danger-color: tokens.$semantic-danger;
+$info-color: tokens.$semantic-info;
+
+$layout-header-height: 60px;
+$layout-sidebar-width: 220px;
+$layout-sidebar-collapsed-width: 64px;
+$layout-tagsview-height: 36px;

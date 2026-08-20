@@ -1,0 +1,834 @@
+// 高校学生管理系统 Prisma Schema
+// 覆盖三份任务书全部数据模型：学生端业务表 + 后台端业务表 + 公共支撑表
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================================================
+// 枚举类型
+// ============================================================================
+
+enum Gender {
+  MALE
+  FEMALE
+}
+
+enum UserType {
+  STUDENT
+  ADMIN
+}
+
+enum StudentStatus {
+  NORMAL      // 在校
+  SUSPENDED   // 休学
+  RESUMED     // 复学
+  DROPPED     // 退学
+  HELD_BACK   // 留级
+  GRADUATED   // 毕业
+}
+
+enum ApplyStatus {
+  PENDING   // 待审批
+  APPROVED  // 通过
+  REJECTED  // 驳回
+}
+
+enum StatusChangeType {
+  SUSPEND          // 休学
+  RESUME           // 复学
+  TRANSFER_MAJOR   // 转专业
+  DROP_OUT         // 退学
+}
+
+enum CertificateType {
+  ENROLLMENT // 在校证明
+  STATUS     // 学籍证明
+}
+
+enum CourseType {
+  REQUIRED  // 必修
+  ELECTIVE  // 选修
+  PUBLIC    // 公共
+}
+
+enum SelectionStatus {
+  SELECTED   // 已选
+  DROPPED    // 退选
+  COMPLETED  // 已完成
+}
+
+enum AwardType {
+  SCHOLARSHIP // 奖学金
+  AID         // 助学金
+  LOAN        // 助学贷款
+  HONOR       // 评优
+}
+
+enum DisciplineType {
+  WARNING          // 警告
+  SERIOUS_WARNING  // 严重警告
+  DEMERIT          // 记过
+  EXPEL            // 开除
+}
+
+enum LeaveType {
+  PERSONAL // 事假
+  SICK     // 病假
+}
+
+enum AttendanceStatus {
+  PRESENT // 出勤
+  ABSENT  // 缺勤
+  LATE    // 迟到
+  LEAVE   // 请假
+}
+
+enum NoticeScope {
+  SCHOOL      // 全校
+  DEPARTMENT  // 院系
+  CLASS       // 班级
+}
+
+enum RepairType {
+  DORM      // 宿舍
+  CLASSROOM // 教室
+}
+
+enum RepairStatus {
+  PENDING     // 待处理
+  PROCESSING  // 处理中
+  DONE        // 已完成
+}
+
+enum FeedbackType {
+  SUGGESTION // 建议
+  COMPLAINT  // 投诉
+}
+
+enum AssignStatus {
+  ACTIVE     // 在住
+  MOVED_OUT  // 已退宿
+}
+
+enum AdminStatus {
+  ACTIVE   // 启用
+  DISABLED // 禁用
+}
+
+enum DataScope {
+  ALL         // 全部数据
+  DEPARTMENT  // 本院系
+  SELF        // 本人
+}
+
+enum MenuType {
+  DIRECTORY // 目录
+  MENU      // 菜单
+  BUTTON    // 按钮
+}
+
+enum FileStorage {
+  LOCAL
+  OSS
+}
+
+enum MessageType {
+  SYSTEM    // 系统
+  NOTICE    // 通知
+  APPROVAL  // 审批
+  WARNING   // 预警
+  REPAIR    // 报修
+}
+
+enum MessageChannel {
+  IN_APP // 站内信
+  SMS    // 短信
+  BOTH   // 站内 + 短信
+}
+
+enum ConfigType {
+  STRING
+  NUMBER
+  BOOLEAN
+  JSON
+}
+
+// ============================================================================
+// 公共支撑模块
+// ============================================================================
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   // 学生 ID 或管理员 ID
+  userType  UserType
+  token     String   @unique @db.VarChar(500)
+  expiresAt DateTime
+  revoked   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId, userType])
+  @@map("refresh_tokens")
+}
+
+model FileRecord {
+  id           String      @id @default(uuid())
+  filename     String      // 原始文件名
+  storedName   String      // 存储名（UUID + 扩展名）
+  mimeType     String
+  size         Int         // 字节
+  path         String      // 存储相对路径
+  storage      FileStorage
+  uploaderId   String?
+  uploaderType UserType?
+  bizType      String?     // avatar / leave_proof / notice_attach ...
+  bizId        String?     // 关联业务 ID
+  createdAt    DateTime    @default(now())
+
+  @@index([bizType, bizId])
+  @@index([uploaderId, uploaderType])
+  @@map("file_records")
+}
+
+model Message {
+  id           String        @id @default(uuid())
+  receiverId   String
+  receiverType UserType
+  title        String
+  content      String
+  type         MessageType
+  bizType      String?
+  bizId        String?
+  channel      MessageChannel
+  isRead       Boolean       @default(false)
+  readAt       DateTime?
+  createdAt    DateTime      @default(now())
+
+  @@index([receiverId, receiverType, isRead])
+  @@map("messages")
+}
+
+model SmsLog {
+  id             String   @id @default(uuid())
+  phone          String
+  templateCode   String
+  params         Json
+  status         String   // SUCCESS / FAIL
+  providerMsgId  String?
+  error          String?
+  createdAt      DateTime @default(now())
+
+  @@index([phone])
+  @@map("sms_logs")
+}
+
+model MessageTemplate {
+  id      String         @id @default(uuid())
+  code    String         @unique // 模板编码
+  title   String
+  content String                // 含占位符 {{name}}
+  channel MessageChannel
+  enabled Boolean        @default(true)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@map("message_templates")
+}
+
+model SystemConfig {
+  id        String      @id @default(uuid())
+  key       String      @unique
+  value     String              // JSON 字符串
+  name      String
+  group     String
+  type      ConfigType
+  remark    String?
+  updatedAt DateTime    @updatedAt
+  updatedBy String?
+
+  @@index([group])
+  @@map("system_configs")
+}
+
+// ============================================================================
+// 后台管理端：RBAC + 日志
+// ============================================================================
+
+model Admin {
+  id          String     @id @default(uuid())
+  username    String     @unique
+  password    String                  // bcrypt
+  realName    String
+  roleId      String
+  role        Role       @relation(fields: [roleId], references: [id])
+  phone       String?
+  status      AdminStatus             @default(ACTIVE)
+  lastLoginAt DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  operationLogs OperationLog[]
+
+  @@map("admins")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique // 超级管理员 / 学工老师 / 辅导员 / 教务员 / 宿管
+  code        String   @unique
+  dataScope   DataScope
+  menus       Json?            // 可访问菜单 ID 数组
+  permissions Json?            // 接口权限标识数组
+  admins      Admin[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("roles")
+}
+
+model Menu {
+  id         String    @id @default(uuid())
+  parentId   String?
+  parent     Menu?     @relation("MenuTree", fields: [parentId], references: [id])
+  children   Menu[]    @relation("MenuTree")
+  name       String
+  path       String?
+  component  String?
+  icon       String?
+  sort       Int       @default(0)
+  type       MenuType
+  permission String?   // BUTTON 类型关联的权限标识
+  visible    Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+
+  @@index([parentId])
+  @@map("menus")
+}
+
+model LoginLog {
+  id        String   @id @default(uuid())
+  username  String
+  ip        String
+  location  String?
+  browser   String?
+  os        String?
+  status    String            // SUCCESS / FAIL
+  message   String?
+  loginAt   DateTime @default(now())
+
+  @@index([username])
+  @@map("login_logs")
+}
+
+model OperationLog {
+  id        String   @id @default(uuid())
+  adminId   String
+  admin     Admin    @relation(fields: [adminId], references: [id])
+  module    String           // 操作模块
+  action    String           // 操作描述
+  method    String           // 请求方法
+  url       String
+  params    String?
+  ip        String
+  costTime  Int              // 耗时 ms
+  createdAt DateTime @default(now())
+
+  @@index([adminId])
+  @@index([createdAt])
+  @@map("operation_logs")
+}
+
+// ============================================================================
+// 基础数据
+// ============================================================================
+
+model Department {
+  id        String   @id @default(uuid())
+  name      String   @unique // 院系名称
+  code      String   @unique
+  parentId  String?          // 支持院系层级
+  parent    Department? @relation("DeptTree", fields: [parentId], references: [id])
+  children  Department[] @relation("DeptTree")
+  sort      Int      @default(0)
+  majors    Major[]
+  classes   Class[]
+  teachers  Teacher[]
+  students  Student[]
+  courses   Course[]
+  createdAt DateTime @default(now())
+
+  @@map("departments")
+}
+
+model Major {
+  id           String   @id @default(uuid())
+  name         String
+  code         String   @unique
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  duration     Int                   // 学制 3/4/5
+  classes      Class[]
+  createdAt    DateTime @default(now())
+
+  @@index([departmentId])
+  @@map("majors")
+}
+
+model Class {
+  id           String   @id @default(uuid())
+  name         String
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  majorId      String
+  major        Major    @relation(fields: [majorId], references: [id])
+  grade        Int                   // 年级
+  counselorId  String?               // 辅导员 adminId
+  students     Student[]
+  createdAt    DateTime @default(now())
+
+  @@index([departmentId])
+  @@index([majorId])
+  @@map("classes")
+}
+
+model Teacher {
+  id            String   @id @default(uuid())
+  teacherNo     String   @unique
+  name          String
+  gender        Gender
+  departmentId  String
+  department    Department @relation(fields: [departmentId], references: [id])
+  title         String?             // 职称
+  phone         String?
+  courses       Course[]
+  createdAt     DateTime @default(now())
+
+  @@map("teachers")
+}
+
+model Dict {
+  id        String   @id @default(uuid())
+  type      String                 // 字典类型
+  label     String
+  value     String
+  sort      Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([type])
+  @@map("dicts")
+}
+
+// ============================================================================
+// 学生端：登录与个人信息中心
+// ============================================================================
+
+model Student {
+  id            String        @id @default(uuid())
+  studentNo     String        @unique // 学号
+  password      String                   // bcrypt 加密
+  name          String
+  gender        Gender
+  photoUrl      String?
+  departmentId  String
+  department    Department    @relation(fields: [departmentId], references: [id])
+  classId       String
+  class         Class         @relation(fields: [classId], references: [id])
+  phone         String?
+  email         String?
+  hometown      String?
+  address       String?
+  status        StudentStatus          @default(NORMAL)
+  familyMembers Json?                  // 家庭成员数组
+  enrollDate    DateTime?
+  graduateDate  DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  // 反向关系（各业务表通过 studentId 引用学生）
+  infoEditApplies    InfoEditApply[]
+  statusChanges      StatusChange[]
+  certificateApplies CertificateApply[]
+  courseSelections   CourseSelection[]
+  scores             Score[]
+  awards             Award[]
+  disciplines        Discipline[]
+  leaveApplies       LeaveApply[]
+  attendanceRecords  AttendanceRecord[]
+  dormAssignment     DormAssignment?
+  dormViolations     DormViolation[]
+  noticeReads        NoticeRead[]
+  repairs            Repair[]
+  feedbacks          Feedback[]
+
+  @@index([departmentId])
+  @@index([classId])
+  @@map("students")
+}
+
+model InfoEditApply {
+  id          String      @id @default(uuid())
+  studentId   String
+  student     Student     @relation(fields: [studentId], references: [id])
+  field       String                    // 修改的字段名
+  oldValue    String?
+  newValue    String
+  status      ApplyStatus             @default(PENDING)
+  reviewerId  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@map("info_edit_applies")
+}
+
+// ============================================================================
+// 学生端：学籍管理
+// ============================================================================
+
+model StatusChange {
+  id            String           @id @default(uuid())
+  studentId     String
+  student       Student          @relation(fields: [studentId], references: [id])
+  type          StatusChangeType
+  reason        String
+  attachmentUrl String?                  // 附件 URL
+  beforeStatus  StudentStatus
+  afterStatus   StudentStatus?
+  status        ApplyStatus               @default(PENDING)
+  currentStep   Int                       @default(0) // 当前审批节点
+  reviewerId    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@map("status_changes")
+}
+
+model CertificateApply {
+  id        String           @id @default(uuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id])
+  type      CertificateType
+  purpose   String
+  status    ApplyStatus             @default(PENDING)
+  fileUrl   String?                 // 生成后 PDF 路径
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  @@index([studentId])
+  @@map("certificate_applies")
+}
+
+// ============================================================================
+// 学生端：课程与成绩
+// ============================================================================
+
+model Course {
+  id           String     @id @default(uuid())
+  code         String     @unique
+  name         String
+  credit       Float
+  hours        Int
+  teacherId    String
+  teacher      Teacher    @relation(fields: [teacherId], references: [id])
+  departmentId String
+  department   Department @relation(fields: [departmentId], references: [id])
+  type         CourseType
+  capacity     Int                @default(60) // 选课容量上限
+  selectStart  DateTime?          // 选课开放时间
+  selectEnd    DateTime?
+  schedules    Schedule[]
+  selections   CourseSelection[]
+  scores       Score[]
+  createdAt    DateTime   @default(now())
+
+  @@index([teacherId])
+  @@index([departmentId])
+  @@map("courses")
+}
+
+model Schedule {
+  id           String   @id @default(uuid())
+  courseId     String
+  course       Course   @relation(fields: [courseId], references: [id])
+  classId      String
+  weekDay      Int            // 1-7
+  startSection Int            // 节次
+  endSection   Int
+  startWeek    Int
+  endWeek      Int
+  classroom    String
+  createdAt    DateTime @default(now())
+
+  @@index([courseId])
+  @@index([classId])
+  @@map("schedules")
+}
+
+model CourseSelection {
+  id        String           @id @default(uuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id])
+  courseId  String
+  course    Course           @relation(fields: [courseId], references: [id])
+  status    SelectionStatus            @default(SELECTED)
+  semester String                       // 2025-2026-1
+  createdAt DateTime         @default(now())
+
+  @@unique([studentId, courseId, semester])
+  @@index([studentId, semester])
+  @@map("course_selections")
+}
+
+model Score {
+  id         String   @id @default(uuid())
+  studentId  String
+  student    Student  @relation(fields: [studentId], references: [id])
+  courseId   String
+  course     Course   @relation(fields: [courseId], references: [id])
+  semester   String
+  usualScore Float?   // 平时成绩
+  examScore  Float?   // 考试成绩
+  finalScore Float    // 总评
+  gpaPoint   Float    // 绩点
+  retake     Boolean  @default(false)
+  audited    Boolean  @default(false) // 是否已审核
+  createdAt  DateTime @default(now())
+
+  @@index([studentId, semester])
+  @@index([courseId])
+  @@map("scores")
+}
+
+// ============================================================================
+// 学生端：奖惩资助
+// ============================================================================
+
+model Award {
+  id          String    @id @default(uuid())
+  studentId   String
+  student     Student   @relation(fields: [studentId], references: [id])
+  type        AwardType
+  name        String            // 项目名称
+  amount      Float?            // 金额
+  semester    String
+  status      ApplyStatus         @default(PENDING)
+  attachments Json?              // 材料附件 URL 数组
+  result      String?            // 评审结果
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([studentId])
+  @@index([type, semester])
+  @@map("awards")
+}
+
+model Discipline {
+  id         String         @id @default(uuid())
+  studentId  String
+  student    Student        @relation(fields: [studentId], references: [id])
+  type       DisciplineType
+  reason     String
+  occurredAt DateTime
+  createdAt  DateTime       @default(now())
+
+  @@index([studentId])
+  @@map("disciplines")
+}
+
+// ============================================================================
+// 学生端：考勤 & 请假
+// ============================================================================
+
+model LeaveApply {
+  id            String    @id @default(uuid())
+  studentId     String
+  student       Student   @relation(fields: [studentId], references: [id])
+  type          LeaveType
+  startDate     DateTime
+  endDate       DateTime
+  reason        String
+  attachmentUrl String?           // 病假证明
+  status        ApplyStatus       @default(PENDING)
+  currentStep   Int               @default(0)
+  approverId    String?
+  reviewedAt    DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@map("leave_applies")
+}
+
+model AttendanceRecord {
+  id        String           @id @default(uuid())
+  studentId String
+  student   Student          @relation(fields: [studentId], references: [id])
+  courseId  String
+  scheduleId String
+  date      DateTime
+  status    AttendanceStatus
+  createdAt DateTime         @default(now())
+
+  @@index([studentId, date])
+  @@index([courseId])
+  @@map("attendance_records")
+}
+
+model AttendanceRule {
+  id          String   @id @default(uuid())
+  threshold   Int                // 旷课次数预警阈值
+  notifyRole  String             // 通知角色（辅导员 code）
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("attendance_rules")
+}
+
+// ============================================================================
+// 学生端：宿舍管理
+// ============================================================================
+
+model Dorm {
+  id          String   @id @default(uuid())
+  building    String          // 楼栋
+  roomNo      String          // 房间号
+  capacity    Int
+  gender      Gender          // 男寝/女寝
+  beds        Json            // 床位号数组 ["1","2","3","4"]
+  assignments DormAssignment[]
+  inspections DormInspection[]
+  violations  DormViolation[]
+  createdAt   DateTime @default(now())
+
+  @@unique([building, roomNo])
+  @@map("dorms")
+}
+
+model DormAssignment {
+  id          String      @id @default(uuid())
+  studentId   String      @unique
+  student     Student     @relation(fields: [studentId], references: [id])
+  dormId      String
+  dorm        Dorm        @relation(fields: [dormId], references: [id])
+  bedNo       String
+  moveInDate  DateTime
+  moveOutDate DateTime?
+  status      AssignStatus             @default(ACTIVE)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([dormId])
+  @@map("dorm_assignments")
+}
+
+model DormInspection {
+  id          String   @id @default(uuid())
+  dormId      String
+  dorm        Dorm     @relation(fields: [dormId], references: [id])
+  score       Int
+  issues      String?
+  inspectedAt DateTime
+  inspectorId String
+  createdAt   DateTime @default(now())
+
+  @@index([dormId])
+  @@map("dorm_inspections")
+}
+
+model DormViolation {
+  id          String   @id @default(uuid())
+  dormId      String
+  dorm        Dorm     @relation(fields: [dormId], references: [id])
+  studentId   String?
+  student     Student? @relation(fields: [studentId], references: [id])
+  type        String
+  description String
+  occurredAt  DateTime
+  createdAt   DateTime @default(now())
+
+  @@index([dormId])
+  @@index([studentId])
+  @@map("dorm_violations")
+}
+
+// ============================================================================
+// 学生端：通知公告
+// ============================================================================
+
+model Notice {
+  id          String      @id @default(uuid())
+  title       String
+  content     String
+  scope       NoticeScope
+  targetId    String?             // 院系或班级 ID（SCHOOL 时为空）
+  attachments Json?
+  publishAt   DateTime            // 定时发布
+  published   Boolean     @default(false)
+  publisherId String
+  reads       NoticeRead[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([scope, published])
+  @@map("notices")
+}
+
+model NoticeRead {
+  id        String   @id @default(uuid())
+  noticeId  String
+  notice    Notice   @relation(fields: [noticeId], references: [id])
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id])
+  readAt    DateTime @default(now())
+
+  @@unique([noticeId, studentId])
+  @@map("notice_reads")
+}
+
+// ============================================================================
+// 学生端：反馈报修
+// ============================================================================
+
+model Repair {
+  id          String      @id @default(uuid())
+  studentId   String
+  student     Student     @relation(fields: [studentId], references: [id])
+  type        RepairType
+  location    String              // 位置描述
+  description String
+  images      Json?               // 图片 URL 数组
+  status      RepairStatus         @default(PENDING)
+  handlerId   String?
+  result      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@map("repairs")
+}
+
+model Feedback {
+  id        String       @id @default(uuid())
+  studentId String
+  student   Student      @relation(fields: [studentId], references: [id])
+  type      FeedbackType
+  content   String
+  reply     String?
+  status    ApplyStatus          @default(PENDING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  @@index([studentId])
+  @@map("feedbacks")
+}

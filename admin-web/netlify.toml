@@ -1,0 +1,46 @@
+# ============================================================
+# 后台端前端 - Netlify 部署配置
+# 两种使用方式：
+#
+# 方式一：Netlify Drop（拖拽上传）—— 最简单
+#   1. 先在本地执行：npm run build
+#   2. 打开 https://app.netlify.com/drop
+#   3. 把 dist 文件夹直接拖进去
+#   4. 等几秒就部署好了，Netlify 会自动分配 xxx.netlify.app 域名
+#   注意：构建前请修改 .env.production 中的 VITE_API_BASE_URL，填入你的 Render 后端地址
+#
+# 方式二：Git 仓库连接自动部署
+#   1. 将项目推送到 GitHub/GitLab
+#   2. 在 Netlify 新建站点，选择仓库
+#   3. Build command: cd admin-web && npm install && npm run build
+#   4. Publish directory: admin-web/dist
+#   5. 在 Netlify 管理面板 → Site settings → Environment variables 中配置：
+#        VITE_API_BASE_URL = https://你的Render后端域名/api
+#        VITE_WS_URL      = https://你的Render后端域名
+# ============================================================
+
+[build]
+  base      = "admin-web"
+  publish   = "dist"
+  command   = "npm install && npm run build"
+
+# SPA 路由回退（Git 部署时自动生效，Drop 方式依赖 public/_redirects）
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# 静态资源强缓存（带 hash 的 JS/CSS/图片）
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# HTML 不缓存，确保每次刷新拿到最新版本
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
