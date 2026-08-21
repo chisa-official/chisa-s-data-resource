@@ -22,7 +22,7 @@
           >
             <template #reference>
               <el-badge :value="unreadCount" :hidden="unreadCount === 0" :max="99" class="msg-badge">
-                <el-icon size="20" class="cursor-pointer"><Bell /></el-icon>
+                <el-icon size="32" class="cursor-pointer"><Bell /></el-icon>
               </el-badge>
             </template>
             <div class="msg-panel">
@@ -251,7 +251,7 @@ onMounted(async () => {
   cursor: pointer;
 
   .el-icon {
-    padding: $space-2;
+    padding: 2px;
     border-radius: $radius-lg;
     color: $text-secondary;
     transition: all 0.2s;

@@ -93,7 +93,7 @@
         </div>
         <div class="student-layout__header-right">
           <el-badge :value="noticeStore.unreadCount" :hidden="noticeStore.unreadCount === 0" :max="99">
-            <el-icon size="20" class="cursor-pointer" @click="router.push('/notice')"><Bell /></el-icon>
+            <el-icon size="32" class="cursor-pointer" @click="router.push('/notice')"><Bell /></el-icon>
           </el-badge>
           <el-dropdown @command="onCommand">
             <span class="student-layout__user">
@@ -258,7 +258,7 @@ onMounted(async () => {
       gap: $space-5;
 
       .el-badge .el-icon {
-        padding: $space-2;
+        padding: 2px;
         border-radius: $radius-lg;
         color: $text-secondary;
         transition: all 0.2s;
